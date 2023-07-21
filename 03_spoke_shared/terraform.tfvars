@@ -1,8 +1,11 @@
 # prefix = "demo042"
-subscription_id_spoke                       = "82f6d75e-85f4-434a-ab74-5dddd9fa8910"
-subscription_id_hub                         = "82f6d75e-85f4-434a-ab74-5dddd9fa8910"
-tenant_id_hub                               = "16b3c013-d300-468d-ac64-7eda0820b6d3"
-tenant_id_spoke                             = "16b3c013-d300-468d-ac64-7eda0820b6d3"
+
+tenant_id_hub       = "777666zz-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+subscription_id_hub = "777666zz-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+tenant_id_spoke       = "777666zz-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+subscription_id_spoke = "777666zz-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
 rg_hub                                      = "rg-hub"
 rg_spoke_app                                = "rg-spoke-app"
 rg_spoke_mgt                                = "rg-spoke-mgt"
@@ -16,7 +19,7 @@ acr_name                                    = "acrakssysdig042"
 keyvault_name                               = "kv-aks-sysdig-042"
 storage_account_name                        = "staakssysdig042"
 log_analytics_workspace                     = "log-aks-sysdig"
-kubernetes_version                          = "1.25.5" # "1.24.6" # 
+kubernetes_version                          = "1.27.1"
 aks_network_plugin                          = "azure"  # "kubenet", "none"
 aad_group_aks_admins                        = "aad_group_aks_admins"
 cidr_vnet_hub                               = ["172.16.0.0/16"]
@@ -46,9 +49,9 @@ enable_nodepool_spot                        = false
 enable_system_nodepool_only_critical_addons = false
 enable_aks_admin_group                      = false
 enable_aks_admin_rbac                       = true
-enable_private_acr                          = true
+enable_private_acr                          = false
 enable_keyvault                             = true
-enable_private_keyvault                     = true
+enable_private_keyvault                     = false
 enable_bastion                              = true
 enable_firewall                             = false
 enable_vm_jumpbox_windows                   = false

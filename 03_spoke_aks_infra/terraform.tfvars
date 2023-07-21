@@ -1,15 +1,16 @@
 prefix = "lzaks-spoke-aks-infra"
 
-tenant_id_hub       = "16b3c013-d300-468d-ac64-7eda0820b6d3"
-subscription_id_hub = "82f6d75e-85f4-434a-ab74-5dddd9fa8910"
+tenant_id_hub       = "xxxxxxzz-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+subscription_id_hub = "xxxxxxzz-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 
-tenant_id_spoke       = "16b3c013-d300-468d-ac64-7eda0820b6d3" # "558506eb-9459-4ef3-b920-ad55c555e729"
-subscription_id_spoke = "82f6d75e-85f4-434a-ab74-5dddd9fa8910" # "17b12858-3960-4e6f-a663-a06fdae23428"
+tenant_id_spoke       = "xxxxxxzz-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+subscription_id_spoke = "xxxxxxzz-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 
 resources_location   = "westeurope" # "francecentral" # "westcentralus" # 
-acr_name             = "acrforakstf01357"
-keyvault_name        = "kvforakslz1357"
-storage_account_name = "storageforaks01357"
+
+acr_name                                    = "acrakssysdig042"
+keyvault_name                               = "kv-aks-sysdig-042"
+storage_account_name                        = "staakssysdig042"
 
 cidr_vnet_spoke_aks      = ["10.1.0.0/16"]
 cidr_subnet_appgateway   = ["10.1.1.0/24"]
@@ -19,10 +20,10 @@ enable_grafana_prometheus = true
 enable_app_gateway        = false
 enable_keyvault           = true
 enable_storage_account    = true
-enable_private_keyvault   = true
-enable_private_acr        = true
+enable_private_keyvault   = false
+enable_private_acr        = false
 
-enable_monitoring = false
+enable_monitoring = true
 
 # integration with Hub & Firewall
 enable_hub_spoke    = false

@@ -36,6 +36,7 @@ variable "storage_account_name" {
 variable "enable_app_gateway" {
   type        = bool
   description = "Enable AGIC addon for AKS"
+  default = false
 }
 
 variable "enable_keyvault" {
@@ -45,12 +46,12 @@ variable "enable_keyvault" {
 
 variable "enable_private_acr" {
   description = "Creates private ACR with Private DNS Zone and Private Endpoint."
-  default     = "true"
+  default     = "false"
 }
 
 variable "enable_private_keyvault" {
   description = "Creates private Keyvault with Private DNS Zone and Private Endpoint."
-  default     = "true"
+  default     = "false"
 }
 
 variable "enable_storage_account" {
@@ -64,10 +65,12 @@ variable "enable_grafana_prometheus" {
 
 variable "enable_monitoring" {
   type = bool
+  default = true
 }
 
 variable "enable_firewall" {
   type = bool
+  default = false
 }
 
 variable "enable_vnet_peering" {
