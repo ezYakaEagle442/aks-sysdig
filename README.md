@@ -20,10 +20,13 @@ Read:
 
 ```sh
 az extension add --name amg
+az extension add --name aks-preview
+az extension update --name aks-preview
 
 az feature list --output table --namespace Microsoft.ContainerService
 
 az feature register --namespace "Microsoft.ContainerService" --name "AKS-PrometheusAddonPreview" 
+az feature register --namespace "Microsoft.ContainerService" --name "AKS-VPAPreview"
 az feature register --namespace "Microsoft.ContainerService" --name "AutoUpgradePreview"
 az feature register --namespace "Microsoft.ContainerService" --name "AKS-OMSAppMonitoring"
 az feature register --namespace "Microsoft.ContainerService" --name "ManagedCluster"
@@ -42,6 +45,7 @@ az provider list --query "[?registrationState=='Registered']" --output table
 az provider list --query "[?namespace=='Microsoft.KeyVault']" --output table
 az provider list --query "[?namespace=='Microsoft.OperationsManagement']" --output table
 
+az provider register --namespace Microsoft.ContainerService
 az provider register --namespace Microsoft.Kubernetes 
 az provider register --namespace Microsoft.KubernetesConfiguration
 az provider register --namespace Microsoft.Kusto
