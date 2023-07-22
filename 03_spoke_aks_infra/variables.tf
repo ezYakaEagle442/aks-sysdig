@@ -22,7 +22,7 @@ variable "cidr_subnet_spoke_aks_pe" {
 
 variable "keyvault_name" {
   description = "Key Vault instance name"
-  default     = "kvforaks011"
+  default     = "kv-aks-101-042"
 }
 
 variable "acr_name" {
@@ -65,7 +65,7 @@ variable "enable_grafana_prometheus" {
 
 variable "enable_monitoring" {
   type = bool
-  default = true
+  default = false
 }
 
 variable "enable_firewall" {
