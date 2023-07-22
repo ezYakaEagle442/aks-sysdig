@@ -25,7 +25,12 @@ az extension update --name aks-preview
 
 az feature list --output table --namespace Microsoft.ContainerService
 
-az feature register --namespace "Microsoft.ContainerService" --name "AKS-PrometheusAddonPreview" 
+az feature register --namespace "Microsoft.ContainerService" --name "AKS-PrometheusAddonPreview"
+
+az feature register --namespace "Microsoft.ContainerService" --name "NetworkObservabilityPreview" 
+
+az feature show --namespace "Microsoft.ContainerService" --name "NetworkObservabilityPreview"
+
 az feature register --namespace "Microsoft.ContainerService" --name "AKS-VPAPreview"
 az feature register --namespace "Microsoft.ContainerService" --name "AutoUpgradePreview"
 az feature register --namespace "Microsoft.ContainerService" --name "AKS-OMSAppMonitoring"
@@ -86,5 +91,34 @@ bash 00_bootstrap/commands.sh
 
 %windir%\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File deploy.ps1
 powershell.exe -ExecutionPolicy Bypass -File deploy.ps1
+
+```
+
+Install [KubeLogin](https://github.com/Azure/kubelogin) on Linux/WSL2
+```sh
+# https://azure.github.io/kubelogin/install.html
+# https://azure.github.io/kubelogin/concepts/login-modes/azurecli.html
+# https://azure.github.io/kubelogin/concepts/login-modes/sp.html
+KUBE_LOGIN_VERSION="v0.0.31"
+wget https://github.com/Azure/kubelogin/releases/download/$KUBE_LOGIN_VERSION/kubelogin-linux-amd64.zip
+chmod +x ./kubelogin-linux-amd64.zip
+unzip kubelogin-linux-amd64.zip
+sudo mv ./bin/linux_amd64/kubelogin /usr/local/bin/kubelogin
+kubelogin --version
+rm -R ./bin
+```
+
+Install KubeLogin with PowerShell
+```sh
+az aks install-cli
+$targetDir="$env:USERPROFILE\.azure-kubelogin"
+$oldPath = [System.Environment]::GetEnvironmentVariable("Path","User")
+$oldPathArray=($oldPath) -split ";"
+if(-Not($oldPathArray -Contains "$targetDir")) {
+    write-host "Permanently adding $targetDir to User Path"
+    $newPath = "$oldPath;$targetDir" -replace ";+", ";"
+    [System.Environment]::SetEnvironmentVariable("Path",$newPath,"User")
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","User"),[System.Environment]::GetEnvironmentVariable("Path","Machine") -join ";"
+}
 
 ```
