@@ -107,7 +107,7 @@ variable "aks_agent_os_disk_size" {
 
 variable "kubernetes_version" {
   description = "Kubernetes version"
-  default     = "1.24.6"
+  default     = "1.27.1"
 }
 
 variable "cidr_aks_service" {
@@ -127,7 +127,7 @@ variable "cidr_aks_docker_bridge" {
 
 variable "vm_user_name" {
   description = "User name for the VM"
-  default     = "vmuser1"
+  default     = "aksadm"
 }
 
 variable "public_ssh_key_path" {
@@ -142,7 +142,7 @@ variable "aks_name" {
 
 variable "keyvault_name" {
   description = "Key Vault instance name"
-  default     = "kvforaks011"
+  default     = "kv-aks-101-042"
 }
 
 variable "acr_name" {
@@ -293,6 +293,7 @@ variable "enable_mysql_flexible_server" {
 
 variable "mysql_password" {
   type = string
+  sensitive = true
 }
 
 variable "enable_spoke_serverless" {
