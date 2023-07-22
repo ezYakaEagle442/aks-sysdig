@@ -249,8 +249,8 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   workload_autoscaler_profile {
-    keda_enabled                    = false # true
-    vertical_pod_autoscaler_enabled = true
+    keda_enabled                    = false
+    vertical_pod_autoscaler_enabled = false
   }
 
   # linux_profile {
