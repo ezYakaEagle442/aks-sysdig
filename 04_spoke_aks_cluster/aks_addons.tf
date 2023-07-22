@@ -1,5 +1,5 @@
 resource "null_resource" "connect_to_aks" {
-  # count = var.enable_aks_cluster ? 1 : 0
+  count = var.enable_aks_admin_rbac ? 1 : 0
 
   provisioner "local-exec" {
     interpreter = ["PowerShell", "-Command"]
@@ -8,7 +8,7 @@ resource "null_resource" "connect_to_aks" {
                              -n ${azurerm_kubernetes_cluster.aks.name} `
                              --overwrite-existing
 
-      kubelogin convert-kubeconfig -l azurecli
+      # kubelogin convert-kubeconfig -l azurecli
 
       kubectl get nodes
     EOT
