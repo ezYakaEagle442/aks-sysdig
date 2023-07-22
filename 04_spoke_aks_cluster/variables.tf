@@ -53,7 +53,7 @@ variable "aks_dns_service_ip" {
 
 variable "vm_user_name" {
   description = "User name for the VM"
-  default     = "vmuser1"
+  default     = "aksadm"
 }
 
 variable "public_ssh_key_path" {
