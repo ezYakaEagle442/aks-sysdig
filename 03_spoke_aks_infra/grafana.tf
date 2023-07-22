@@ -1,6 +1,6 @@
 resource "azurerm_dashboard_grafana" "grafana" {
   count                             = var.enable_grafana_prometheus ? 1 : 0
-  name                              = "grafana-123579"
+  name                              = "grafana-aks-sysdig-042"
   resource_group_name               = azurerm_resource_group.rg.name
   location                          = azurerm_resource_group.rg.location
   api_key_enabled                   = true
@@ -23,17 +23,54 @@ resource "azurerm_dashboard_grafana" "grafana" {
 resource "null_resource" "grafana_import_dashboard" {
   count = var.enable_grafana_prometheus ? 1 : 0
 
+  # might need : az extension add --name amg
+
+  # https://grafana.com/grafana/dashboards/18814-kubernetes-networking/
   provisioner "local-exec" {
     interpreter = ["PowerShell", "-Command"]
     command = <<-EOT
       az grafana dashboard import `
-        --name ${azurerm_dashboard_grafana.grafana.0.name} `
+        --name aks-sysdig-042-networking `
         --resource-group ${azurerm_resource_group.rg.name} `
         --folder 'Managed Prometheus' `
         --definition 18814
     EOT
+  }
 
-    # might need : az extension add --name amg
+  # https://grafana.com/grafana/dashboards/10956-azure-monitor-for-containers-metrics/
+  provisioner "local-exec" {
+    interpreter = ["PowerShell", "-Command"]
+    command = <<-EOT
+      az grafana dashboard import `
+        --name aks-sysdig-042-containers-metrics `
+        --resource-group ${azurerm_resource_group.rg.name} `
+        --folder 'Managed Prometheus' `
+        --definition 10956
+    EOT
+  }
+
+  # https://grafana.com/grafana/dashboards/14891-aks-monitor-container-insights-kubernetes-pod-metrics/
+  provisioner "local-exec" {
+    interpreter = ["PowerShell", "-Command"]
+    command = <<-EOT
+      az grafana dashboard import `
+        --name aks-sysdig-042-ci-pod-metrics `
+        --resource-group ${azurerm_resource_group.rg.name} `
+        --folder 'Managed Prometheus' `
+        --definition 14891
+    EOT
+  }
+
+  # https://grafana.com/grafana/dashboards/10956-azure-monitor-for-containers-metrics/
+  provisioner "local-exec" {
+    interpreter = ["PowerShell", "-Command"]
+    command = <<-EOT
+      az grafana dashboard import `
+        --name aks-sysdig-042-azmon-containers-metrics `
+        --resource-group ${azurerm_resource_group.rg.name} `
+        --folder 'Managed Prometheus' `
+        --definition 10956
+    EOT
   }
 
   depends_on = [azurerm_role_assignment.role_grafana_admin]
