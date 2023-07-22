@@ -37,7 +37,7 @@ provider "azurerm" {
   tenant_id       = var.tenant_id_spoke
   # client_id       = "a0d7fbe0-xxxxxxxxxxxxxxxxxxxxx"
   # client_secret   = "BAFHTxxxxxxxxxxxxxxxxxxxxxxxxx"
-  # auxiliary_tenant_ids = ["72f988bf-86f1-41af-91ab-2d7cd011db47"] # (Optional) List of auxiliary Tenant IDs required for multi-tenancy and cross-tenant scenarios. This can also be sourced from the ARM_AUXILIARY_TENANT_IDS Environment Variable.
+  # auxiliary_tenant_ids = ["xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"] # (Optional) List of auxiliary Tenant IDs required for multi-tenancy and cross-tenant scenarios. This can also be sourced from the ARM_AUXILIARY_TENANT_IDS Environment Variable.
 
   features {
     resource_group {
@@ -64,9 +64,9 @@ provider "azurerm" {
   alias           = "subscription_hub"
   subscription_id = var.subscription_id_hub
   tenant_id       = var.tenant_id_hub
-  # client_id       = "a0d7fbe0-dca2-4848-b6ac-ad15e2c31840"
-  # client_secret   = "BAFHTR3235FEHsdfb%#$W%weF#@a"
-  # auxiliary_tenant_ids = ["558506eb-9459-4ef3-b920-ad55c555e729"]
+  # client_id       = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  # client_secret   = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  # auxiliary_tenant_ids = ["xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]
   features {
     resource_group {
       prevent_deletion_if_contains_resources = false
@@ -94,13 +94,13 @@ provider "azuread" { # default takes current user/identity tenant
 
 # provider azuread {
 #   alias     = "tenant_hub"
-#   tenant_id = "72f988bf-86f1-41af-91ab-2d7cd011db47"
+#   tenant_id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 #   # use_cli = true
 # }
 
 # provider azuread {
 #   alias     = "tenant_spoke"
-#   tenant_id = "558506eb-9459-4ef3-b920-ad55c555e729"
+#   tenant_id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 #   # use_cli = true
 # }
 
