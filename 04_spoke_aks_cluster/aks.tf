@@ -118,12 +118,12 @@ resource "azurerm_kubernetes_cluster" "aks" {
     user_assigned_identity_id = azurerm_user_assigned_identity.identity-kubelet.id
   }
 
-  azure_active_directory_role_based_access_control {
-    managed                = true
-    azure_rbac_enabled     = var.enable_aks_admin_group || var.enable_aks_admin_rbac
-    admin_group_object_ids = var.enable_aks_admin_group ? [azuread_group.aks_admins.0.object_id] : null
-    tenant_id              = var.enable_aks_admin_group ? data.azurerm_subscription.subscription_spoke.tenant_id : null
-  }
+  #azure_active_directory_role_based_access_control {
+  #  managed                = true
+  #  azure_rbac_enabled     = var.enable_aks_admin_group || var.enable_aks_admin_rbac
+  #  admin_group_object_ids = var.enable_aks_admin_group ? [azuread_group.aks_admins.0.object_id] : null
+  #  tenant_id              = var.enable_aks_admin_group ? data.azurerm_subscription.subscription_spoke.tenant_id : null
+  #}
 
   network_profile {
     # ebpf_data_plane     = "cilium"
