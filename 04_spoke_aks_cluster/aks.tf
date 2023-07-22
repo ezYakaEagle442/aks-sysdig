@@ -39,6 +39,10 @@ resource "azurerm_subnet" "subnet_apiserver" {
       name = "Microsoft.ContainerService/managedClusters"
     }
   }
+ 
+  # https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet.html#service_endpoints
+  service_endpoints = ["Microsoft.ContainerRegistry", "Microsoft.KeyVault"]
+
 }
 
 resource "azurerm_kubernetes_cluster" "aks" {
@@ -53,7 +57,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   private_cluster_public_fqdn_enabled = false
   public_network_access_enabled       = true
   role_based_access_control_enabled   = true
-  azure_policy_enabled                = true
+  azure_policy_enabled                = false
   open_service_mesh_enabled           = false
   local_account_disabled              = false
   run_command_enabled                 = true
