@@ -1,7 +1,7 @@
 # import my existing custom domain name (houssem.cloud)
 data "azurerm_dns_zone" "dns_zone_parent" {
   provider            = azurerm.subscription_hub
-  name                = "houssemd.com"
+  name                = "pinpin.com"
   resource_group_name = "rg-dns"
 }
 
