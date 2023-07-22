@@ -3,6 +3,10 @@ variable "prefix" {
   description = "A prefix used for all resources in this example"
 }
 
+variable "enable_monitoring" {
+  type        = string
+  default     = false
+}
 variable "resources_location" {
   description = "Location of the resource group."
 }
