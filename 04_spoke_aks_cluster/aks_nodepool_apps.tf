@@ -8,7 +8,7 @@ variable "nodepoolapps" {
     #   os_sku            = "Ubuntu"
     # },
     "poolappsamd" = {
-      vm_size           = "Standard_D2s_v5" # intel # Standard_D2s_v5 does not support Ephemeral OS disk
+      vm_size           = "Standard_D8s_v5" # "Standard_D4s_v5" "Standard_D2s_v5" intel # Standard_D2s_v5 does not support Ephemeral OS disk
       os_disk_type      = "Managed"         # "Ephemeral" # 
       cidr_subnet_nodes = ["10.1.7.0/24"]
       cidr_subnet_pods  = ["10.1.8.0/24"]
