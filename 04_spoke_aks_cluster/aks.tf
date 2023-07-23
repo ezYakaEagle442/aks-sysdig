@@ -87,7 +87,8 @@ resource "azurerm_kubernetes_cluster" "aks" {
     min_count                    = 1
     max_count                    = 3
     max_pods                     = 110
-    vm_size                      = "Standard_D2s_v5" # "Standard_D2pds_v5" # "Standard_D2ds_v5" # "standard_d2pds_v5"
+    # https://learn.microsoft.com/en-us/azure/virtual-machines/dv5-dsv5-series
+    vm_size                      = "Standard_D4s_v5" # "Standard_D2s_v5"  "Standard_D2pds_v5" # "Standard_D2ds_v5" # "standard_d2pds_v5"
     os_disk_size_gb              = var.aks_agent_os_disk_size
     os_disk_type                 = "Managed" # "Ephemeral" # 
     ultra_ssd_enabled            = false
