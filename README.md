@@ -13,12 +13,13 @@ Read:
 
 - [https://sysdig.com/company/free-trial-platform/](https://sysdig.com/company/free-trial-platform/)
 - [Inspecting all the details of your environment with Kubernetes context](https://www.youtube.com/watch?v=y0XvIC2TJFg)
-- [Scanning for vulnerabilities in your CI/CD pipelines, registries and at runtime(https://www.youtube.com/watch?v=u4cAdd0dlsA)
+- [Scanning for vulnerabilities in your CI/CD pipelines, registries and at runtime](https://www.youtube.com/watch?v=u4cAdd0dlsA)
 - [Validating compliance against PCI, NIST, etc.](https://www.youtube.com/watch?v=KqcK-4s-gSY)
 - [Detecting and responding to threats with OOB rules (MITRE, FIM, etc.)](https://www.youtube.com/watch?v=uCkTLatNKOo)
 - [https://docs.sysdig.com/en/docs/installation/configuration/sysdig-agent/understand-the-agent-configuration/](https://docs.sysdig.com/en/docs/installation/configuration/sysdig-agent/understand-the-agent-configuration/)
 
 
+## Setup AZ CLI
 ```sh
 az config set extension.use_dynamic_install=yes_without_prompt
 
@@ -87,16 +88,7 @@ az extension add -n k8s-configuration
 
 ```
 
-
-```sh
-find . -type f -print0 | xargs -0 dos2unix
-bash 00_bootstrap/commands.sh 
-
-%windir%\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File deploy.ps1
-powershell.exe -ExecutionPolicy Bypass -File deploy.ps1
-
-```
-
+## Setup Kube Login When AAD RBAC is enabled
 Install [KubeLogin](https://github.com/Azure/kubelogin) on Linux/WSL2
 ```sh
 # https://azure.github.io/kubelogin/install.html
@@ -126,13 +118,40 @@ if(-Not($oldPathArray -Contains "$targetDir")) {
 
 ```
 
-Deploy a sample application into your cluster in one new namespace.
-As an example, you can any of the following examples:
-[https://github.com/dockersamples/example-voting-app]
-[https://github.com/GoogleCloudPlatform/microservices-demo]
-[https://github.com/microservices-demo/microservices-demo]
 
-The vote web app is then available on port 31000 on each host of the cluster, the result web app is available on port 31001.
+## Install TerraForm on Linux/WSL2
+
+```sh
+# https://developer.hashicorp.com/terraform/downloads
+TF_VERSION="1.5.3"
+wget https://releases.hashicorp.com/terraform/$TF_VERSION/terraform_${TF_VERSION}_linux_amd64.zip -O terraform.zip;
+chmod +x ./terraform.zip
+unzip terraform.zip
+sudo mv ./terraform /usr/local/bin/terraform
+terraform -v
+rm terraform.zip
+```
+
+
+# Deploy AKS Cluster
+
+```sh
+# find . -type f -print0 | xargs -0 dos2unix
+bash 00_bootstrap/commands.sh 
+
+%windir%\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File deploy.ps1
+powershell.exe -ExecutionPolicy Bypass -File deploy.ps1
+
+```
+
+# Deploy a sample application into your cluster in one new namespace.
+
+As an example, you can any of the following examples:
+- [https://github.com/dockersamples/example-voting-app]
+- [https://github.com/GoogleCloudPlatform/microservices-demo]
+- [https://github.com/microservices-demo/microservices-demo]
+
+The vote web app is then available on port 31000 on each host of the cluster or port 5000 through a Load Balancer, the result web app is available on port 31001 or port 5001 through a Load Balancer.
 
 ```sh
 #https://github.com/dockersamples/example-voting-app/tree/main
@@ -150,6 +169,12 @@ kubectl get deployment -o wide -n ${NS_APP}
 kubectl get pods -o wide -n ${NS_APP}
 kubectl get svc -o wide -n ${NS_APP}
 
+vote_lb_ip=$(kubectl get svc -n ${NS_APP} -l app=vote -o jsonpath="{.items[*].status.loadBalancer.ingress[*].ip}")
+result_lb_ip=$(kubectl get svc -n ${NS_APP} -l app=result -o jsonpath="{.items[*].status.loadBalancer.ingress[*].ip}")
+
+curl http://$vote_lb_ip:5000
+curl http://$result_lb_ip:5001
+
 # https://learn.microsoft.com/en-us/azure/aks/use-node-public-ips
 
 # az aks nodepool update -g rg-lzaks-spoke-aks-nodes --cluster-name aks-lzaks-cluster -n aks-poolappsamd-41974831-vmss --enable-node-public-ip
@@ -161,14 +186,13 @@ kubectl get svc -o wide -n ${NS_APP}
 
 ```
 
-# Install the Sysdig Agent
+
+## Optional : install PROMETHEUS & GRAFANA
 
 ```sh
-
 helm version
 helm repo update
 
-# PROMETHEUS & GRAFANA
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm upgrade --install prom prometheus-community/kube-prometheus-stack -n monitoring --create-namespace `
        --set grafana.adminUser="grafana" --set grafana.adminPassword="@Aa123456789"
@@ -176,7 +200,12 @@ start powershell {kubectl port-forward service/prom-grafana 8000:80 -n monitorin
 start microsoft-edge:http://localhost:8000
 # Access dashboard: http://localhost:8000
 # login: grafana, password: @Aa123456789
+```
 
+
+# Install the Sysdig Agent
+
+```sh
 # https://sysdig.com/company/free-trial-platform/ https://sysdig.com/start-free/
 # Make sure to select all options to have access to Sysdig Monitor and Sysdig Secure
 
@@ -200,6 +229,7 @@ helm install sysdig-agent --namespace sysdig-agent --create-namespace \
     sysdig/sysdig-deploy
 
 helm ls -n sysdig-agent
+kubectl get ds -n sysdig-agent
 kubectl get pods -n sysdig-agent
 
 ```
@@ -207,31 +237,27 @@ kubectl get pods -n sysdig-agent
 
 # Monitor
 
-Verify the application status via Kubernetes Advisor, anything to highlight?
+Verify the application status via Kubernetes Advisor, anything to highlight ?
 
-Use PromQL Explorer to create some queries using metrics coming from or
-related with the Voting app (or the application you have chosen)
+Use PromQL Explorer to create some queries using metrics coming from or related with the Voting app (or the application you have chosen)
 
-i. One query needs to represent the cpu usage of each pod of the Voting
-app namespace (sysdig_container_cpu_cores_used)
+- One query needs to represent the cpu usage of each pod of the Voting app namespace (sysdig_container_cpu_cores_used)
 
 ```sh
 sysdig_container_cpu_cores_used{cluster="aks-lzaks-cluster"}
 ```
 
-ii. Other query needs to represent % the CPU Used
-(sysdig_container_cpu_cores_used) vs the CPU Requested
-(kube_pod_container_resource_requests{resource=”cpu”}) for the Voting
-app pods
+- Other query needs to represent % the CPU Used (sysdig_container_cpu_cores_used) vs the CPU Requested
+(kube_pod_container_resource_requests{resource=”cpu”}) for the Voting app pods
 
 ```sh
 
 ```
 
 
-iii. If you can’t build these 2 queries, you can use other a similar query
-c. Use the queries you have built to create a new dashboard
-d. Use the queries you have built to create an alert related with the Voting
+- If you can’t build these 2 queries, you can use other a similar query
+  - Use the queries you have built to create a new dashboard
+  - Use the queries you have built to create an alert related with the Voting
 application
 
 
@@ -240,27 +266,27 @@ application
 Review the vulnerabilities that are appearing in the Voting application
 
 Define a Kubernetes CIS benchmark to your cluster
-i. What conclusions can you extract from the results?
-c. Enable some Runtime Policies and trigger some of them
-i. We recommend triggering “Terminal Shell in a Container” rule “Sysdig
-Runtime Notable Events” by accessing a container running in the cluster
-ii. You can select other policies/rules to trigger
+- What conclusions can you extract from the results?
+- Enable some Runtime Policies and trigger some of them
+
+We recommend triggering “Terminal Shell in a Container” rule “Sysdig Runtime Notable Events” by accessing a container running in the cluster
+- You can select other policies/rules to trigger
 
 Investigate Sysdig API via Swagger definition
 
 The query should look something like:
 https://<sysdig region API>/api/scanning/runtime/v2/workflows/results?cursor&filter=kubernetes.namespace.name%20%3D%20%22<namespace>%22&limit=100&order=desc&sort=runningVulnsBySev
 
-a. Select one image from the Voting application (or the application you have
-deployed) and extract via API all vulnerabilities associated with that image
-i. Show us the API call(s) you have used to extract that information
-ii. You can use curl, a script in bash/python, postman…
+Select one image from the Voting application (or the application you have deployed) and extract via API all vulnerabilities associated with that image
+- Show us the API call(s) you have used to extract that information
+- You can use curl, a script in bash/python, postman…
 
 [https://eu1.app.sysdig.com/api/public/docs/index.html](https://eu1.app.sysdig.com/api/public/docs/index.html)
 [https://eu1.app.sysdig.com/#/login](https://eu1.app.sysdig.com/#/login)
 
 
 [ Retrieve the Sysdig API Token](https://docs.sysdig.com/en/docs/developer-tools/sysdig-python-client/getting-started-with-sdcclient/#retrieve-the-sysdig-api-token)
+
 ```sh
 
 ```
