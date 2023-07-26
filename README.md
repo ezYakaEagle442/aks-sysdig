@@ -142,7 +142,38 @@ bash 00_bootstrap/commands.sh
 %windir%\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File deploy.ps1
 powershell.exe -ExecutionPolicy Bypass -File deploy.ps1
 
+az aks get-credentials -g rg-lzaks-spoke-aks-cluster --name aks-lzaks-cluster
+kubectl cluster-info
+
 ```
+
+## Setup K8S Alias
+
+```sh
+source <(kubectl completion bash) # setup autocomplete in bash into the current shell, bash-completion package should be installed first.
+echo "source <(kubectl completion bash)" >> ~/.bashrc 
+alias k=kubectl
+complete -F __start_kubectl k
+
+alias kn='kubectl config set-context --current --namespace '
+
+export gen="--dry-run=client -o yaml"
+# ex: k run nginx --image nginx $gen
+
+# Get K8S resources
+alias kp="kubectl get pods -o wide"
+alias kd="kubectl get deployment -o wide"
+alias ks="kubectl get svc -o wide"
+alias kno="kubectl get nodes -o wide"
+
+# Describe K8S resources 
+alias kdp="kubectl describe pod"
+alias kdd="kubectl describe deployment"
+alias kds="kubectl describe service"
+
+k config view --minify
+```
+
 
 # Deploy a sample application into your cluster in one new namespace.
 
@@ -230,6 +261,7 @@ helm install sysdig-agent --namespace sysdig-agent --create-namespace \
 
 helm ls -n sysdig-agent
 kubectl get ds -n sysdig-agent
+kubectl get deploy -n sysdig-agent
 kubectl get pods -n sysdig-agent
 
 ```
@@ -244,13 +276,22 @@ Use PromQL Explorer to create some queries using metrics coming from or related 
 - One query needs to represent the cpu usage of each pod of the Voting app namespace (sysdig_container_cpu_cores_used)
 
 ```sh
-sysdig_container_cpu_cores_used{cluster="aks-lzaks-cluster"}
+# https://prometheus.io/docs/prometheus/latest/querying/basics/
+sysdig_container_cpu_cores_used
+sysdig_container_cpu_cores_used{kube_namespace_name="apps"}
+
+# /!\ There is no request/limit in the Voting Apps, so the query will return NO DATA in the Apps namespace
+
+sum(sysdig_container_cpu_cores_used{kube_namespace_name="sysdig-agent"}) by (kube_pod_name) 
+/
+sum(kube_pod_container_resource_requests{resource="cpu",kube_namespace_name="sysdig-agent"}) by (kube_pod_name)
 ```
 
 - Other query needs to represent % the CPU Used (sysdig_container_cpu_cores_used) vs the CPU Requested
 (kube_pod_container_resource_requests{resource=”cpu”}) for the Voting app pods
 
 ```sh
+
 
 ```
 
@@ -260,19 +301,49 @@ sysdig_container_cpu_cores_used{cluster="aks-lzaks-cluster"}
   - Use the queries you have built to create an alert related with the Voting
 application
 
+```sh
+# Alert:
+(sum(sysdig_container_cpu_cores_used{kube_namespace_name="sysdig-agent"}) by (kube_pod_name) 
+/
+sum(kube_pod_container_resource_requests{resource="cpu",kube_namespace_name="sysdig-agent"}) by (kube_pod_name)
+) > 2
+
+
+sum(sysdig_container_cpu_cores_used{kube_namespace_name="apps"}) by (kube_pod_name, container_name) 
+/
+sum(kube_pod_container_resource_requests{resource="cpu",kube_namespace_name="apps"}) by (kube_pod_name, container_name)
+
+round(
+  100 *
+    sum(rate(sysdig_container_cpu_cores_used{kube_namespace_name="apps"}[42h])) by (pod_name, container_name) / 
+    sum(kube_pod_container_resource_requests{resource="cpu",kube_namespace_name="apps"}) by (pod_name, container_name)
+)
+
+sum(sum by (kube_cluster_name)(kube_pod_container_resource_limits{resource="cpu",kube_cluster_name="aks-lzaks-cluster", kube_workload_type=~".*"}) )/sum(kube_node_status_capacity_cpu_cores{kube_cluster_name="aks-lzaks-cluster"})
+
+sum by (kube_cluster_name, kube_namespace_name, kube_workload_type, kube_workload_name) (sysdig_container_cpu_cores_used{kube_namespace_name="apps"})
+
+
+sum by (kube_cluster_name) (kube_pod_container_resource_requests{resource="cpu"}) / sum by (kube_cluster_name) (kube_node_status_allocatable_cpu_cores{kube_cluster_name="aks-lzaks-cluster"}) > ( (count by (kube_cluster_name) (kube_node_status_allocatable_cpu_cores{kube_cluster_name="aks-lzaks-cluster"})-1) / count by (kube_cluster_name) (kube_node_status_allocatable_cpu_cores{kube_cluster_name="aks-lzaks-cluster"}) )
+
+sum by (kube_cluster_name,kube_node_name) (sysdig_container_cpu_cores_used{kube_cluster_name=~"aks-lzaks-cluster", kube_namespace_name="apps"}) / sum by (kube_cluster_name,kube_node_name) (kube_node_status_capacity_cpu_cores{kube_cluster_name="aks-lzaks-cluster"}) > 0.90
+```
 
 # Secure
 
-Review the vulnerabilities that are appearing in the Voting application
+## Review the vulnerabilities that are appearing in the Voting application
 
 Define a Kubernetes CIS benchmark to your cluster
 - What conclusions can you extract from the results?
 - Enable some Runtime Policies and trigger some of them
 
+==> Go to 'Posture' in the UI
+See [https://docs.sysdig.com/en/docs/sysdig-secure/posture/compliance/](https://docs.sysdig.com/en/docs/sysdig-secure/posture/compliance/)
+
 We recommend triggering “Terminal Shell in a Container” rule “Sysdig Runtime Notable Events” by accessing a container running in the cluster
 - You can select other policies/rules to trigger
 
-Investigate Sysdig API via Swagger definition
+## Investigate Sysdig API via Swagger definition
 
 The query should look something like:
 https://<sysdig region API>/api/scanning/runtime/v2/workflows/results?cursor&filter=kubernetes.namespace.name%20%3D%20%22<namespace>%22&limit=100&order=desc&sort=runningVulnsBySev
@@ -285,8 +356,28 @@ Select one image from the Voting application (or the application you have deploy
 [https://eu1.app.sysdig.com/#/login](https://eu1.app.sysdig.com/#/login)
 
 
-[ Retrieve the Sysdig API Token](https://docs.sysdig.com/en/docs/developer-tools/sysdig-python-client/getting-started-with-sdcclient/#retrieve-the-sysdig-api-token)
+[Retrieve the Sysdig API Token](https://docs.sysdig.com/en/docs/administration/administration-settings/user-profile-and-password/retrieve-the-sysdig-api-token/#retrieve-the-sysdig-api-token)
+When using the Sysdig API with custom scripts or applications, an API security token (specific to each team) must be supplied.
+- Log in to Sysdig Monitor or Sysdig Secure and select Settings.
+- Select User Profile. The Sysdig Monitor or Sysdig Secure API token is displayed (depending on which interface and team you logged in to).
+- Copy the token for use, or click the Reset Token button to generate a new one. export SYSDIG_API_TOKEN="xxx"
 
 ```sh
+set -euo pipefail
+# access_token=$(az account get-access-token --query accessToken -o tsv)
+
+kubectl create sa api-client -n ${NS_APP} 
+# sa_secret_name=$(kubectl get sa api-client -n ${NS_APP} -o json | jq -Mr '.metadata.name')
+export APPS_API_TOKEN=$(kubectl create token api-client -n ${NS_APP})
+
+
+export SYSDIG_API_TOKEN="xxx"
+
+curl -X GET -H "Authorization: Bearer $SYSDIG_API_TOKEN" https://eu1.app.sysdig.com/api/groupmappings
+
+
+curl -X GET -H "Authorization: Bearer $SYSDIG_API_TOKEN" https://eu1.app.sysdig.com/api/scanning/runtime/v2/workflows/results?cursor&filter=kubernetes.namespace.name%20%3D%20%22apps%22&limit=100&order=desc&sort=runningVulnsBySev
+
+curl -X GET https://eu1.app.sysdig.com/api/scanning/runtime/v2/workflows/results?cursor&filter=kubernetes.namespace.name%20%3D%20%22<namespace>%22&limit=100&order=desc&sort=runningVulnsBySev
 
 ```
